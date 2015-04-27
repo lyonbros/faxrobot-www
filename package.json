@@ -1,0 +1,22 @@
+{
+  "name": "faxrobot-www",
+  "version": "0.9.0",
+  "description": "Fax Robot Javascript App",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "faxrobot-www"
+  },
+  "author": "Jeff Lyon",
+  "license": "GPLv3",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-contrib-concat": "^0.5.0",
+    "grunt-contrib-less": "~0.11.4",
+    "grunt-contrib-uglify": "^0.5.1",
+    "grunt-contrib-watch": "~0.6.1"
+  }
+}

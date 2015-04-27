@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Send a fax — Fax Robot</title>
+    <script type="text/javascript" src="/library/library.min.js"></script>
+    <script type="text/javascript" src="/config/local.js"></script>
+    <script type="text/javascript" src="/faxrobot.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/faxrobot.css"/>
+    <link href='http://fonts.googleapis.com/css?family=Special+Elite' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+</head>
+<body>
+    <div id="wrapper">
+        <header></header>
+        <div id="main">
+            <h1>Fax Robot.</h1>
+            <p>Send a fax. Fast and secure.</p>
+        </div>
+        <footer>
+            <p>
+                <a href="/privacy">Privacy Policy</a> /
+                <a href="/tos">Terms of Service</a> /
+                <strong><a class="external" href="#" id="contact_link">Contact</a></strong>
+            </p>
+            <p>
+                Fax Robot is <a href="https://www.github.com/lyonbros/fax-robot-www">open source</a>
+                and <a href="http://opensource.org/licenses/GPL-3.0">GPL v3-licensed</a>.
+                Copyright &copy; 2015 <a href="http://lyonbros.com">Lyon Bros. Enterprises, LLC</a>
+            </p>
+        </footer>
+    </div>
+    
+    <script id="header_header" type="text/template">
+        <a href="/" class="logo">Fax Robot.</a>
+        <ul class="nav">
+            <li><a href="/">Send a Fax</a></li>
+            <% if (api_key) { %><li><a href="/jobs">My Faxes</a></li><% } %>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/api">API</a></li>
+        </ul>
+        <div class="account">
+            <% if (!api_key) { %>
+                <a href="/accounts/register" class="register">Register</a>
+                <a href="/accounts/login" class="login">Login</a>
+            <% } else { %>
+                <div class="avatar">
+                    <img src="http://www.gravatar.com/avatar/<%-hash%>?s=32"/>
+                    <span><%-first_name%> <%-last_name%></span>
+                    <span class="caret">
+                        &#9660;
+                    </span>
+                    <ul class="menu">
+                        <li><a href="/account">My account</a></li>
+                        <li><a href="/jobs">My faxes</a></li>
+                        <li><a href="/transactions">Transaction history</a></li>
+                        <li><a href="/accounts/logout">Logout</a></li>
+                    </ul>
+                </div>
+            <% } %>
+        </div>
+    </script>
+    <script id="jobs_create" type="text/template">
+        <div class="container">
+            <h1>Fax Robot.</h1>
+            <h2>Send a fax. Fast and secure.</h2>
+
+            <form class="fax_form" method="post" enctype="multipart/form-data">
+                <div class="row clear file">
+                    <label class="step1">Step 1.</label>
+                    <span>
+                        <input type="file" />
+                        <div class="choose_file">
+                            <a href="#">Choose a file</a>
+                            <em>(.docx,&nbsp;&nbsp;.doc,&nbsp;&nbsp;.pdf,&nbsp;&nbsp;.txt)</em>
+                        </div>
+                    </span>
+                </div>
+                <div class="row clear destination">
+                    <label class="step2">Step 2.</label>
+                    <span>
+                        Enter a fax number:
+                        <input type="text" name="destination" placeholder="555-555-5555" />
+                        <input type="checkbox" id="coversheet"/>
+                        <label for="coversheet">Add a cover sheet</label>
+                        <em class="edit">(<a href="#">Edit</a>)</em>
+                    </span>
+                </div>
+                <div class="row clear">
+                    <label class="step3">Step 3.</label>
+                    <span>
+                        <button>Send Fax!</button>
+                        <div class="cost">
+                            <strong></strong>
+                            <p class="disclosure">
+                                By submitting a fax, you agree to the
+                                <a href="/privacy">Privacy Policy</a> and
+                                <a href="/tos">Terms of Service</a>.
+                            </p>
+                        </div>
+                    </span>
+                </div>
+            </form>
+        </div>
+    </script>
+    <script id="job_info" type="text/template">
+        <div class="container">
+            <h1>Fax Robot.</h1>
+            <h2>- Job Details -</h2>
+
+            <% if (!logged_in) { %>
+                <div class="content centered">
+                    <p>~</p><p>You must be logged in to view your jobs.</p>
+                    <p><a href="#" class="login">Click here to login</a></p>
+                </div>
+            <% } else { %>
+                <% if (!model) { %>
+                    <img src="/images/ajax-load.gif" class="loader"/>
+                <% } else { %>
+                    <% if (model.status == 'failed' && !model.data_deleted) { %>
+                        <button class="centered restart">Restart job</button>
+                    <% } else if (model.status == 'ready' && !model.data_deleted) { %>
+                        <button class="centered start">Send fax</button>
+                    <% } %>
+                    <div class="history side no_click">
+                        <%
+                        console.log('model: ', model);
+                        %>
+                        <table cellpadding="0" cellspacing="0" border="0">
+                            <tr><th>job id:</th><td><%-model.id%></td></tr>
+                            <tr>
+                                <th>status:</th>
+                                <td>
+                                    <a class="status <%-model.status%>" href="#"><%-model.status%></a>
+                                    <% if (model.status == 'failed' && reason && detail) { %>
+                                        <br/><strong><%-reason%></strong> <%=detail%>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <tr><th>attempts:</th><td><%-model.attempts%></td></tr>
+                            <tr><th>file:</th><td><%-model.filename%></td></tr>
+                            <tr><th>destination:</th><td><%-util.format_phone(model.destination)%></td></tr>
+                            <tr><th># pages:</th> <td><%-model.num_pages%></td></tr>
+                            <tr><th>cover sheet:</th><td><%-model.cover ? 'yes' : 'no' %></td></tr>
+                            <tr><th>total cost:</th><td>$<%-model.total_cost%></td></tr>
+                            <tr><th>data&nbsp;deleted:</th><td><%-model.data_deleted ? 'yes' : 'no' %></td></tr>
+                            <tr><th>created:</th><td><%=util.format_date(model.create_date)%></td></tr>
+                            <tr><th>started:</th><td><%=util.format_date(model.start_date)%></td></tr>
+                            <tr><th>finished:</th><td><%=util.format_date(model.end_date)%></td></tr>
+                        </table>
+                    </div>
+                <% } %>
+            <% } %>
+        </div>
+    </script>
+    <script id="jobs_list" type="text/template">
+        <div class="container">
+            <% if (temporary_password || changed_tmp_pwd) { %>
+                <div class="thanks">
+                    <h1>Thanks :)</h1>
+                    <p>
+                        We'll email you when your fax is finished sending.
+                        <br/>
+                        <% if (changed_tmp_pwd) { %>
+                            Thanks for changing your password. You rock!
+                        <% } else { %>
+                            Your new account password is <strong><%-temporary_password%></strong>.
+                            <a href="#" class="change_password">(Please change it)</a>
+                        <% } %>
+                    </p>
+                </div>
+            <% } else { %>
+                <h1>Fax Robot.</h1>
+            <% } %>
+            <h2>- Your faxes -</h2>
+            <% if (!logged_in) { %>
+                <div class="content centered">
+                    <p>~</p><p>You must be logged in to see your faxes.</p>
+                    <p><a href="#" class="login">Click here to login</a></p>
+                </div>
+            <% } else { %>
+                <div class="table"></div>
+            <% } %>
+            <div class="content centered no_pad">
+                <p>Available Credit: <a href="/transactions">$<%-credit.toFixed(2)%></a></p>
+            </div>
+        </div>
+    </script>
+    <script id="jobs_list_table" type="text/template">
+        <% if (!collection) { %>
+            <img src="/images/ajax-load.gif" class="loader"/>
+        <% } else { %>
+            <div class="pagination filter clear">
+                <strong>
+                    Filter:
+                    <% if (filter == 'all') { %><em>all</em><% } else { %><a href="/jobs/all/1">all</a><% } %>
+                    |
+                    <% if (filter == 'sent') { %><em>sent</em><% } else { %><a class="sent" href="/jobs/sent/1">sent</a><% } %>
+                    |
+                    <% if (filter == 'failed') { %><em>failed</em><% } else { %><a class="failed" href="/jobs/failed/1">failed</a><% } %>
+                </strong>
+            </div>
+            <% if (collection.length == 0) { %>
+                <div class="content centered">
+                    <p>&nbsp;</p><p>No faxes found :(</p><p><a href="/">Try sending a fax?</a></p>
+                </div>
+            <% } else { %>
+                <div class="history">
+                    <table cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                            <th>Date</th>
+                            <th>Destination</th>
+                            <th>Pages</th>
+                            <th>Cost</th>
+                            <th>Status</th>
+                        </tr>
+                        <% for (var i=0; i<collection.length; i++) { %>
+                            <%
+                            var d = new Date(collection[i].create_date);
+                            %>
+                            <tr id="job_<%-collection[i].access_key%>">
+                                <td><%=util.format_date(collection[i].create_date)%></td>
+                                <td><%-util.format_phone(collection[i].destination)%></td>
+                                <td><%-collection[i].cover ? collection[i].num_pages + collection[i].cover : collection[i].num_pages%></td>
+                                <td>$<%-collection[i].total_cost%></td>
+                                <td><a href="#" class="status <%-collection[i].status%>"><%-collection[i].status%></a></td>
+                            </tr>
+                        <% } %>
+                    </table>
+                </div>
+                <div class="pagination clear">
+                    <div class="left">
+                        <% if (has_prev) { %>
+                            <a href="/jobs/<%-filter%>/<%-page - 1 %>">&laquo; Back</a>
+                        <% } else { %>
+                            &laquo; Back
+                        <% } %>
+                    </div>
+                    <div class="right">
+                        <% if (has_next) { %>
+                            <a href="/jobs/<%-filter%>/<%-page + 1 %>">Next &raquo;</a>
+                        <% } else { %>
+                            Next &raquo;
+                        <% } %>
+                    </div>
+                    Page <%-page%> of <%-pages%>
+                </div>
+            <% } %>
+        <% } %>
+    </script>
+    <script id="accounts_transactions" type="text/template">
+        <div class="container">
+            <h1>Fax Robot.</h1>
+            <h2>- Your transactions -</h2>
+
+            <% if (!logged_in) { %>
+                <div class="content centered">
+                    <p>~</p><p>You must be logged in to see your transaction history.</p>
+                    <p><a href="#" class="login">Click here to login</a></p>
+                </div>
+            <% } else { %>
+                <div class="content centered no_pad">
+                    <p>Available Credit: $<%-credit.toFixed(2)%></p>
+                    <div class="table"></div>
+                    <div class="content centered">
+                        <p><a href="/account">Buy more credit</a></p>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </script>
+    <script id="accounts_transactions_list" type="text/template">
+        <% if (!collection) { %>
+            <img src="/images/ajax-load.gif" class="loader"/>
+        <% } else if (collection.length == 0) { %>
+            <div class="content centered">
+                <p>~</p><p>No transactions found :(</p><p><a href="/">Try spending some money.</a></p>
+            </div>
+        <% } else { %>
+            <div class="history no_click">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                    </tr>
+                    <% for (var i=0; i<collection.length; i++) { %>
+                        <%
+                        var t = collection[i];
+                        var d = new Date(t.create_date);
+                        var amt = parseFloat(t.amount.toFixed(2));
+                        %>
+                        <tr>
+                            <td><%-t.id%></td>
+                            <td><%=util.format_date(t.create_date)%></td>
+                            <td><%=amt > 0 ? '+&nbsp;$'+amt : '-&nbsp;$'+amt*-1%></td>
+                            <td>
+                                <% switch (t.trans_type) {
+                                    case 'payment':
+                                        %>Payment received<%
+                                        break;
+                                    case 'auto_recharge':
+                                        %>Auto recharge<%
+                                        break;
+                                    case 'no_answer_charge':
+                                        %><a href="/job/<%-t.job_id%>"><%-util.format_phone(t.job_destination)%> (no answer)</a><%
+                                        break;
+                                    case 'job_complete':
+                                        %><a href="/job/<%-t.job_id%>"><%-util.format_phone(t.job_destination)%> (sent)</a><%
+                                        break;
+                                } %>
+                            </td>
+                        </tr>
+                    <% } %>
+                </table>
+            </div>
+            <div class="pagination clear">
+                <div class="left">
+                    <% if (has_prev) { %>
+                        <a href="/transactions/<%-page - 1 %>">&laquo; Back</a>
+                    <% } else { %>
+                        &laquo; Back
+                    <% } %>
+                </div>
+                <div class="right">
+                    <% if (has_next) { %>
+                        <a href="/transactions/<%-page + 1 %>">Next &raquo;</a>
+                    <% } else { %>
+                        Next &raquo;
+                    <% } %>
+                </div>
+                Page <%-page%> of <%-pages%>
+            </div>
+        <% } %>
+    </script>
+    <script id="jobs_coversheet" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal">
+                    <h2>Optional cover sheet fields</h2>
+                    <strong class="error"></strong>
+                    <div class="columns clear">
+                        <div>
+                            <label for="cover_name">Your name:</label>
+                            <input type="text" id="cover_name" placeholder="" value="<%-cover_name%>"/>
+                        </div>
+                        <div>
+                            <label for="cover_to_name">Recipient name (ATTN):</label>
+                            <input type="text" id="cover_to_name" placeholder="" value="<%-cover_to_name%>"/>
+                        </div>
+                    </div>
+
+                    <div class="columns clear">
+                        <div>
+                            <label for="cover_email">Your email address:</label>
+                            <input type="text" id="cover_email" placeholder="" value="<%-cover_email%>"/>
+                        </div>
+                        <div>
+                            <label for="cover_phone">Your phone number:</label>
+                            <input type="text" id="cover_phone" placeholder="" value="<%-cover_phone%>"/>
+                        </div>
+                    </div>
+
+                    <div class="columns clear">
+                        <div>
+                            <label for="cover_subject">Fax Subject:</label>
+                            <input type="text" id="cover_subject" placeholder="" value="<%-cover_subject%>"/>
+                        </div>
+                        <div>
+                            <label for="cover_company">Your company name:</label>
+                            <input type="text" id="cover_company" placeholder="" value="<%-cover_company%>"/>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label for="cover_comments">Comments:</label>
+                        <textarea id="cover_comments"><%-cover_comments%></textarea>
+                    </div>
+                    <button>Done Editing</button>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="jobs_confirm_password" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal">
+                    <h2>Please enter your account password</h2>
+                    <p>
+                        In order to complete your transaction, please enter your account password.
+                    </p>
+                    <form method="post" action="/accounts/login">
+                        <div class="center_row password">
+                            <label for="confirm_password">Your password:</label>
+                            <input type="password" id="confirm_password" placeholder="" value="" tabindex="1"/>
+                        </div>
+                        <button type="submit" tabindex="2">Send Fax!</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="errors_modal" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal">
+                    <h2><%-title%></h2>
+                    <p><%=detail%></p>
+                    <button>OK, fine.</button>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="blocking_modal" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal blocking"><h2><%-text%></h2></div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_login" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal login">
+                    <form method="post" action="/accounts/login">
+                        <h2>Login!</h2>
+                        <div class="center_row email">
+                            <label for="login_email">Your email address:</label>
+                            <input type="text" id="login_email" placeholder="" value="" tabindex="1"/>
+                        </div>
+                        <div class="center_row password">
+                            <label for="login_password">Your password:</label>
+                            <input type="password" id="login_password" placeholder="" value="" tabindex="2"/>
+                        </div>
+                        <button type="submit" class="inline" tabindex="3"></button>
+                        <a href="#" class="forgot">Forgot password?</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_forgot_password" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal forgot_password">
+                    <form method="post" action="/accounts/forgot_password">
+                        <h2>Forgot your password?</h2>
+                        <p>
+                            No worries. Enter your email address and we'll send you a reset link.
+                        </p>
+                        <div class="center_row email">
+                            <label for="forgot_email">Your email address:</label>
+                            <input type="text" id="forgot_email" placeholder="" value="<%-email%>" tabindex="1"/>
+                        </div>
+                       
+                        <button type="submit" tabindex="2"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_register" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal register">
+                    <form method="post" action="/accounts/register">
+                        <h2>Register!</h2>
+                        <div class="center_row email">
+                            <label for="register_name">Your name:</label>
+                            <input type="text" id="register_name" placeholder="" value="" tabindex="1"/>
+                        </div>
+                        <div class="center_row email">
+                            <label for="register_email">Your email address:</label>
+                            <input type="text" id="register_email" placeholder="" value="" tabindex="2"/>
+                        </div>
+                        <div class="center_row password">
+                            <label for="register_password">Your password:</label>
+                            <input type="password" id="register_password" placeholder="" value="" tabindex="3"/>
+                        </div>
+                        <strong class="error"></strong>
+                        <button type="submit" tabindex="4"></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_change_password" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal change_password">
+                    <form method="post" action="/accounts/change_password" autocomplete="off">
+                        <h2>Change Password</h2>
+                        <div class="center_row password">
+                            <label for="old_password">Old password:</label>
+                            <input type="password" id="old_password" placeholder="" value="" tabindex="1"/>
+                        </div>
+                        <div class="center_row password">
+                            <label for="new_password_1">New password:</label>
+                            <input type="password" id="new_password_1" placeholder="" value="" tabindex="2"/>
+                        </div>
+                        <div class="center_row password">
+                            <label for="new_password_2">New password (again):</label>
+                            <input type="password" id="new_password_2" placeholder="" value="" tabindex="3"/>
+                        </div>
+                        <strong class="error"></strong>
+                        <button type="submit" tabindex="4">Change Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_api_key" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal api_key">
+                    <h2>Your API Key is:</h2>
+                    <blockquote><%=api_key%></blockquote>
+                    <p>
+                        The <a href="/api">Faxrobot API</a> makes it possible
+                        to send faxes programmatically. Guard this key with your life
+                        &mdash; it's as sensitive as your password.
+                    </p>
+                    <p class="bottom">
+                        <strong><a href="#" class="reset">Reset your API key</a></strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_api_key_reset" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal api_key_reset">
+                    <form method="post" action="/accounts/api_key_reset" autocomplete="off">
+                        <h2>Reset your API key</h2>
+                        <p>
+                            For your security, please enter your password.
+                            Use caution: this change will take effect
+                            immediately. Any clients using your old API key
+                            will need to be updated.
+                        </p>
+                        <div class="center_row password">
+                            <label for="password">Password:</label>
+                            <input type="password" placeholder="" value="" tabindex="1"/>
+                        </div>
+                        <strong class="error"></strong>
+                        <button type="submit" tabindex="2">Reset API Key</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="accounts_manage" type="text/template">
+        <div class="container">
+            <h1>Fax Robot.</h1>
+            <h2>- Your Account -</h2>
+
+            <% if (!logged_in) { %>
+                <div class="content centered">
+                    <p>~</p><p>You must be logged in to see view your account details.</p>
+                    <p><a href="#" class="login">Click here to login</a></p>
+                </div>
+            <% } else { %>
+                <div class="content account_info">
+                    <h3>Account Info</h3>
+                    <form action="/account" class="edit_form">
+                        <div class="columns clear">
+                            <div>
+                                <label for="first_name">First name:</label>
+                                <input disabled type="text" id="first_name" placeholder="" value="<%-first_name%>" tabindex="1"/>
+                            </div>
+                            <div>
+                                <label for="last_name">Last name:</label>
+                                <input disabled type="text" id="last_name" placeholder="" value="<%-last_name%>" tabindex="2"/>
+                            </div>
+                        </div>
+                        <div class="columns clear">
+                            <div>
+                                <label for="email">Email:</label>
+                                <input disabled type="text" id="email" placeholder="" value="<%-email%>" tabindex="3"/>
+                            </div>
+                            <div>
+                                <label for="address">Street Address:</label>
+                                <input disabled type="text" id="address" placeholder="" value="<%-address%>" tabindex="4"/>
+                            </div>
+                        </div>
+                        <div class="columns clear">
+                            <div>
+                                <label for="address2">Street Address (second line):</label>
+                                <input disabled type="text" id="address2" placeholder="" value="<%-address2%>" tabindex="5"/>
+                            </div>
+                            <div>
+                                <label for="city">City:</label>
+                                <input disabled type="text" id="city" placeholder="" value="<%-city%>" tabindex="6"/>
+                            </div>
+                        </div>
+                        <div class="columns clear">
+                            <div>
+                                <label for="state">State:</label>
+                                <input disabled type="text" id="state" placeholder="" value="<%-state%>" tabindex="7"/>
+                            </div>
+                            <div>
+                                <label for="zip">Zip Code:</label>
+                                <input disabled type="text" id="zip" placeholder="" value="<%-zip%>" tabindex="8"/>
+                            </div>
+                        </div>
+                        <strong class="error"></strong>
+                        <button>Save Account</button>
+                    </form>
+                    <ul>
+                        <li>
+                            <a class="cancel_edit" href="#"><strong>Cancel edit</strong></a>
+                            <a class="edit_account" href="#">Edit account info</a>
+                        </li>
+                        <li><a href="#" class="change_password">Change password</a></li>
+                        <li><a href="#" class="api_key">View API key</a></li>
+                    </ul>
+                    <h3>Balance and Billing</h3>
+                    <div class="columns clear">
+                        <div>
+                            <label for="balance">Available Credit:</label>
+                            <input disabled type="text" id="balance" placeholder="" value="$<%-credit.toFixed(2)%>"/>
+                        </div>
+                        <div>
+                            <label for="credit_card">
+                                Payment Info:
+                                <% if (has_stripe_token) { %>
+                                    <a href="#" class="remove_card">[remove]</a>
+                                <% } %>
+                            </label>
+                            <div class="field">
+                                <% if (has_stripe_token) { %>
+                                    ************<%-last4%>
+                                <% } else { %>
+                                    (none stored)
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" id="auto_recharge" <% if (auto_recharge) { %>checked<% } %>/>
+                        <label for="auto_recharge">Automatically recharge my account when it runs out.</label>
+                    </div>
+                    <ul>
+                        <li><a href="/transactions">View transaction history</a></li>
+                        <li><a href="#" class="payment_info">Change stored payment info</a></li>
+                        <li>
+                            Add credit (one-off):
+                            <a href="#" class="one_off">$5</a> / 
+                            <a href="#" class="one_off">$10</a> / 
+                            <a href="#" class="one_off">$20</a>
+                        </li>
+                    </ul>
+                    <h3>Communication Preferences</h3>
+                    <div class="checkbox">
+                        <input type="checkbox" class="email_pref" id="email_success" <% if (email_success) { %>checked<% } %> />
+                        <label for="email_success">Email me when faxes send successfully</label>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" class="email_pref" id="email_fail" <% if (email_fail) { %>checked<% } %> />
+                        <label for="email_fail">Email me when faxes fail to send</label>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" class="email_pref" id="email_list" <% if (email_list) { %>checked<% } %> />
+                        <label for="email_list">Email me occasional news & updates (**totally not spam :)</label>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </script>
+    <script id="accounts_payment_info" type="text/template">
+        <div class="overlay">
+            <div class="modal_container">
+                <div class="modal payment">
+                    <form>
+                        <h2>Payment Info</h2>
+                        <p>
+                            If you choose to automatically recharge your account, we will
+                            charge your credit card $10 USD whenever you run out of credit.
+                            Your payment information is protected by
+                            <a href="https://stripe.com" class="external" target="_blank">Stripe</a>
+                            and sent securely via SSL.
+
+                        </p>
+
+                        <div class="card_number">
+                            <label for="card_number">Card Number:</label>
+                            <input type="text" id="card_number" placeholder="" value="" tabindex="1"/>
+                        </div>
+                        <div class="expires">
+                            <label for="expires">Expires:</label>
+                            <select id="expires_month" tabindex="2">
+                                <option>01</option>
+                                <option>02</option>
+                                <option>03</option>
+                                <option>04</option>
+                                <option>05</option>
+                                <option>06</option>
+                                <option>07</option>
+                                <option>08</option>
+                                <option>09</option>
+                                <option>10</option>
+                                <option>11</option>
+                                <option>12</option>
+                            </select>
+                            <select id="expires_year" tabindex="3">
+                                <option>2015</option>
+                                <option>2016</option>
+                                <option>2017</option>
+                                <option>2018</option>
+                                <option>2019</option>
+                                <option>2020</option>
+                                <option>2021</option>
+                            </select>
+                        </div>
+                        <div class="cvc">
+                            <label for="cvc">CVC Code:</label>
+                            <input type="text" id="cvc" placeholder="" value="" tabindex="4"/>
+                        </div>
+                        <div class="clearMe"></div>
+
+                        <button type="submit" tabindex="5" disabled>Save Credit Card</button>
+                        <a href="https://stripe.com" class="external" target="_blank">
+                            <img class="stripe_logo" src="images/stripe.png" alt="Your data is secured by Stripe." />
+                        </a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="page" type="text/template">
+        <div class="container">
+            <div class="content text">
+                <%=html ? html : '<h1>&nbsp;</h1><img src="/images/ajax-load.gif" class="loader"/>'%>
+            </div>
+        </div>
+    </script>
+    <script src="https://checkout.stripe.com/checkout.js" async></script>
+</body>
+</html>

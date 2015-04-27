@@ -1,0 +1,984 @@
+<div class="toc">
+    <strong>API Table of Contents</strong>
+    <ul>
+        <li>
+            <a href="/api/endpoints">Endpoints</a>
+            <ul>
+                <li><a href="/api/create">Create a fax</a></li>
+                <li><a href="/api/update">Update a fax</a></li>
+                <li><a href="/api/get">Get fax info</a></li>
+                <li><a href="/api/delete">Delete fax data</a></li>
+                <li><a href="/api/restart">Restart a failed fax</a></li>
+                <li><a href="/api/list">List faxes</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="/api/response">Response Objects</a>
+            <ul>
+                <li><a href="/api/job">Job Object</a></li>
+                <li><a href="/api/pagination">Pagination Object</a></li>
+                <li><a href="/api/error">Error Object</a></li>
+            </ul>
+        </li>
+        <li>
+            <a href="/api/fail">Error Codes</a>
+            <ul>
+                <li><a href="/api/failapi">API Error Codes</a></li>
+                <li><a href="/api/failfax">Fax Failure Codes</a></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+<h1>API</h1>
+<p>
+    Are you a developer? The Fax Robot API lets you send faxes from your app.
+    Make all API calls to <code>https://api.faxrobot.io</code><span id="endpoints">.</span>
+</p>
+<h4><a id="create"></a>Endpoints</h4>
+<h2>POST: <code>/jobs/create</code></h2>
+<p class="description">
+    <strong>Create a fax and optionally send it.</strong> The initial response for any new job
+    will contain a <code>status</code> of "new". The number of pages and cost fields
+    for the job will be computed asynchronously, so the initial response will exclude
+    these fields. You can use the <code>callback_url</code>
+    parameter to have the job details sent to your server after the initial processing is done,
+    or simply pass <code>send_authorized=1</code> to send
+    the fax immediately.
+</p>
+<h3>Request Parameters</h3>
+<table class="api">
+    <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>api_key</td>
+        <td>String</td>
+        <td>Your <a href="#" class="api_key">API Key</a></td>
+    </tr>
+    <tr>
+        <td class="optional">destination</td>
+        <td>Phone Number</td>
+        <td>Optional 10 digit destination phone number. Required if <code>send_authorized</code> is 1.</td>
+    </tr>
+    <tr>
+        <td>file</td>
+        <td>Binary</td>
+        <td>A multipart-encoded file upload in .doc, .docx, .pdf, or .txt format. Required if <code>body</code> is not passed.</td>
+    </tr>
+    <tr>
+        <td>body</td>
+        <td>Text</td>
+        <td>Text to use as the fax message. Supports UTF-8 characters. Required if <code>file</code> not passed.</td>
+    </tr>
+    <tr>
+        <td>send_authorized</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether to send the fax immediately (1) or wait for further updates (0). You can use this to upload a file and check the computed cost of a job before sending.</td>
+    </tr>
+    <tr>
+        <td class="optional">callback_url</td>
+        <td>String URL</td>
+        <td>Optional callback URL to post a <a href="/api/job">Job Object</a> with status info when the fax sends, fails or becomes ready.</td>
+    </tr>
+    <tr>
+        <td>cover</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether to include a cover sheet. This adds the cost of one page to the job cost.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_name</td>
+        <td>String</td>
+        <td>Name of the sender for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_address</td>
+        <td>String</td>
+        <td>Sender's address for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_city</td>
+        <td>String</td>
+        <td>Sender's city for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_state</td>
+        <td>String</td>
+        <td>Sender's state for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_zip</td>
+        <td>String</td>
+        <td>Sender's zip for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_country</td>
+        <td>String</td>
+        <td>Sender's country for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_phone</td>
+        <td>String</td>
+        <td>Sender's phone for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_email</td>
+        <td>String</td>
+        <td>Sender's email for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_company</td>
+        <td>String</td>
+        <td>Sender's company for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_to_name</td>
+        <td>String</td>
+        <td>Recipient's name for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_cc</td>
+        <td>String</td>
+        <td>Any recipients to cc on the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_subject</td>
+        <td>String</td>
+        <td>Message subject for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_status</td>
+        <td>String ENUM</td>
+        <td><code>urgent|review|comment|reply|shred</code>: any status checkboxes for the cover, separated by vertical pipes.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_comments</td>
+        <td>Text</td>
+        <td>Text to put as the comment to a cover sheet. Limit to below 1,000 characters. If it goes too long, it will be truncated, not wrap to multiple pages.</td>
+    </tr>
+</table>
+
+<h3>Response Format</h3>
+A <a href="/api/job">Job Object</a> (excludes properties relating to cost, which
+hasn't been computed yet.)
+
+<h3>Example</h3>
+<p class="description">
+    <strong>Send a fax immediately:</strong>
+</p>
+
+<pre class="code">
+curl https://api.faxrobot.io/jobs/create \
+    -F 'destination=6509061234' \
+    -F 'file=@/path/to/filename.docx' \
+    -F 'send_authorized=1 \
+    -F 'api_key=API_KEY'
+</pre>
+<p class="description">
+    <strong>Example response.</strong> Note the <code>cost</code>, <code>cover_cost</code>,
+    <code>total_cost</code>, and <code>num_pages</code> are not computed yet, so they are
+    not present in the response.
+</p>
+<pre class="code">
+{
+  "access_key": "[LONG_HEX_STRING]", 
+  "attempts": 0, 
+  "cover": 0, 
+  "create_date": "Mon, 20 Apr 2015 04:20:00 GMT", 
+  "data_deleted": 0,
+  "destination": "6509061234", 
+  "end_date": null, 
+  "fail_code": 0, 
+  "failed": 0, 
+  "filename": "filename.docx", 
+  "id": 233, 
+  "ip_address": "192.168.69.69", 
+  "mod_date": null, 
+  "send_authorized": 1, 
+  "start_date": null, 
+  "status": "new", 
+  "NOTE": "We have not yet computed the 'cost', 'cover_cost', 'total_cost', or 'num_pages' fields. Do not rely on them yet.", 
+}
+</pre>
+<hr id="update">
+<h2>POST: <code>/jobs/update/<em>&lt;ACCESS_KEY></em></code></h2>
+<p class="description">
+    <strong>Update an unsent fax.</strong> If you chose not to send your fax
+    immediately, you can update many of its fields before sending. Pass
+    <code>send_authorized=1</code> to send the fax.
+</p>
+<h3>Request Parameters</h3>
+<table class="api">
+    <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>api_key</td>
+        <td>String</td>
+        <td>Your <a href="#" class="api_key">API Key</a></td>
+    </tr>
+    <tr>
+        <td class="optional">destination</td>
+        <td>Phone Number</td>
+        <td>10 digit destination phone number.</td>
+    </tr>
+    <tr>
+        <td>send_authorized</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether to send the fax immediately (1) or wait for further updates (0).</td>
+    </tr>
+    <tr>
+        <td class="optional">callback_url</td>
+        <td>String URL</td>
+        <td>Optional callback URL to post a <a href="/api/job">Job Object</a> with status info when the fax sends, fails or becomes ready.</td>
+    </tr>
+    <tr>
+        <td>cover</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether to include a cover sheet. This adds the cost of one page to the job cost.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_name</td>
+        <td>String</td>
+        <td>Name of the sender for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_address</td>
+        <td>String</td>
+        <td>Sender's address for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_city</td>
+        <td>String</td>
+        <td>Sender's city for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_state</td>
+        <td>String</td>
+        <td>Sender's state for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_zip</td>
+        <td>String</td>
+        <td>Sender's zip for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_country</td>
+        <td>String</td>
+        <td>Sender's country for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_phone</td>
+        <td>String</td>
+        <td>Sender's phone for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_email</td>
+        <td>String</td>
+        <td>Sender's email for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_company</td>
+        <td>String</td>
+        <td>Sender's company for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_to_name</td>
+        <td>String</td>
+        <td>Recipient's name for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_cc</td>
+        <td>String</td>
+        <td>Any recipients to cc on the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_subject</td>
+        <td>String</td>
+        <td>Message subject for the cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_status</td>
+        <td>String ENUM</td>
+        <td><code>urgent|review|comment|reply|shred</code>: any status checkboxes for the cover, separated by vertical pipes.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_comments</td>
+        <td>Text</td>
+        <td>Text to put as the comment to a cover sheet. Limit to below 1,000 characters. If it goes too long, it will be truncated, not wrap to multiple pages.</td>
+    </tr>
+</table>
+<h3>Response Format</h3>
+A <a href="/api/job">Job Object</a>, (possibly excluding properties relating to cost, which
+may not have computed yet.)
+<hr id="get">
+
+<h2>GET: <code>/jobs/get/<em>&lt;ACCESS_KEY></em></code></h2>
+<p class="description">
+    <strong>Get a fax.</strong> Useful for polling.
+</p>
+<h3>Request Parameters</h3>
+<table class="api">
+    <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>api_key</td>
+        <td>String</td>
+        <td>Your <a href="#" class="api_key">API Key</a></td>
+    </tr>
+</table>
+<h3>Response Format</h3>
+A <a href="/api/job">Job Object</a>. See the section on
+<a href="/api/failfax">fax failure codes</a> to see what can go wrong with a job.
+
+<h3>Example</h3>
+<p class="description">
+    <strong>Get info for a fax:</strong>
+</p>
+<pre class="code">
+curl https://api.faxrobot.io/jobs/get/[LONG_HEX_STRING]</pre>
+<p class="description">
+    <strong>Example response.</strong>
+</p>
+<pre class="code">
+{
+  "access_key": "[LONG_HEX_STRING]", 
+  "attempts": 1, 
+  "cost": 0.12, 
+  "cover": 0, 
+  "cover_cost": 0.06, 
+  "create_date": "Wed, 20 Apr 2015 04:20:00 GMT", 
+  "data_deleted": 0,
+  "destination": "6129261234", 
+  "end_date": null, 
+  "fail_code": 516, 
+  "failed": 1, 
+  "filename": "trololol.pdf", 
+  "id": 240, 
+  "ip_address": "192.168.69.69", 
+  "mod_date": "Wed, 22 Apr 2015 21:31:34 GMT", 
+  "num_pages": 2, 
+  "send_authorized": 1, 
+  "start_date": "Wed, 22 Apr 2015 21:30:26 GMT", 
+  "status": "failed", 
+  "total_cost": 0.12
+}
+</pre>
+
+<hr id="delete">
+
+<h2>POST: <code>/jobs/delete_data/<em>&lt;ACCESS_KEY></em></code></h2>
+<p class="description">
+    <strong>Delete uploaded data for a fax.</strong> This does not delete the
+    job itself. This deletes any uploaded files, text content or cover sheet
+    data associated with a job. Faxes might contain personal or private data, so
+    you may wish to delete this data from our servers. Normally we do this
+    automatically after the job is sent successfully, but you can do it manually
+    if the job is failed or unsent. Once data is deleted the job cannot be
+    updated or restarted.
+</p>
+<p class="description">
+    This command will fail if the fax is queued for sending or being processed
+    in any way. You cannot use this command to cancel a job once it's authorized
+    for sending.
+</p>
+<h3>Request Parameters</h3>
+<table class="api">
+    <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>api_key</td>
+        <td>String</td>
+        <td>Your <a href="#" class="api_key">API Key</a></td>
+    </tr>
+</table>
+<h3>Response Format</h3>
+A <a href="/api/job">Job Object</a>.
+
+<hr id="restart"/>
+
+<h2>POST: <code>/jobs/restart/<em>&lt;ACCESS_KEY></em></code></h2>
+<p class="description">
+    <strong>Restart a failed fax.</strong> The job must have a <code>status</code>
+    of "failed" for this to work.
+</p>
+<h3>Request Parameters</h3>
+<table class="api">
+    <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>api_key</td>
+        <td>String</td>
+        <td>Your <a href="#" class="api_key">API Key</a></td>
+    </tr>
+</table>
+<h3>Response Format</h3>
+A <a href="/api/job">Job Object</a>.
+<hr id="list"/>
+
+<h2>GET: <code>/jobs/list</code></h2>
+<p class="description">
+    <strong>List your faxes.</strong> Includes pagination fields, for when you have a
+    bunch of 'em.
+</p>
+<h3>Request Parameters</h3>
+<table class="api">
+    <tr>
+        <th>Parameter</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>api_key</td>
+        <td>String</td>
+        <td>Your <a href="#" class="api_key">API Key</a></td>
+    </tr>
+    <tr>
+        <td>page</td>
+        <td>Integer</td>
+        <td>Default 1. The page of results to get, starting at 1.</td>
+    </tr>
+    <tr>
+        <td class="optional">filter</td>
+        <td>String</td>
+        <td>Optional. Filter results based on <code>status</code>.</td>
+    </tr>
+</table>
+<h3>Response Format</h3>
+A <a href="/api/pagination">Pagination Object</a> with an array of 
+<a href="/api/job">Job Objects</a> in the <code>jobs</code> property.
+<h3>Example</h3>
+<p class="description">
+    <strong>Example request.</strong>
+</p>
+<pre class="code">
+curl https://api.faxrobot.io/jobs/list?page=1&filter=all&api_key=[LONG_HEX_STRING]</pre>
+<p class="description">
+    <strong>Example response.</strong>
+</p>
+<pre class="code">
+{
+  "has_next": false, 
+  "has_prev": false, 
+  "jobs": [
+    {
+      "access_key": "[LONG_HEX_STRING]", 
+      "attempts": 1, 
+      "cost": 0.12, 
+      "cover": 0, 
+      "cover_cost": 0.06, 
+      "create_date": "Wed, 20 Apr 2015 04:20:00 GMT", 
+      "data_deleted": 0,
+      "destination": "6129261234", 
+      "end_date": null, 
+      "fail_code": 0, 
+      "failed": 0, 
+      "filename": "omfg.pdf", 
+      "id": 243, 
+      "ip_address": "192.168.69.69", 
+      "mod_date": "Wed, 22 Apr 2015 21:59:04 GMT", 
+      "num_pages": 2, 
+      "send_authorized": 1, 
+      "start_date": "Wed, 22 Apr 2015 21:59:04 GMT", 
+      "status": "started", 
+      "total_cost": 0.12
+    }
+  ], 
+  "page": 1, 
+  "pages": 1, 
+  "per_page": 20, 
+  "total": 1
+}
+</pre>
+<br id="response">
+<h4><a id="job"></a>Response Objects</h4>
+
+<h2>Job Object</h2>
+<p class="description">
+    <strong>Represents a fax in the Fax Robot database.</strong> Job Objects are
+    returned by every API endpoint relating to faxes and contain current status
+    and pricing information (if computed). If a job failed to send, its
+    <code>fail_code</code> property will contain a <a href="/api/failfax">fax failure
+    code</a> to identify the specific error that occurred.
+</p>
+<h3>Job Object Properties</h3>
+<table class="api">
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>access_key</td>
+        <td>String</td>
+        <td>A unique key identifying the fax.</td>
+    </tr>
+    <tr>
+        <td>attempts</td>
+        <td>Integer</td>
+        <td>Number of attempts to send the fax.</td>
+    </tr>
+    <tr>
+        <td class="optional">cost</td>
+        <td>Float</td>
+        <td>
+            The cost in USD for the job's file or text data (excludes the cost
+            of the cover sheet). This property may not be present if the job's
+            <code>status</code> is "new" or "uploading". It is computed after the job is
+            initially created.
+        </td>
+    </tr>
+    <tr>
+        <td>cover</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether to include a cover sheet.</td>
+    </tr>
+    <tr>
+        <td class="optional">cover_cost</td>
+        <td>Float</td>
+        <td>
+            The cost in USD for the job's cover sheet. This property may not be
+            present if the job's <code>status</code> is "new" or "uploading". It
+            is computed after the job is initially created.
+        </td>
+    </tr>
+    <tr>
+        <td>create_date</td>
+        <td>DateTime</td>
+        <td>When the job was created.</td>
+    </tr>
+    <tr>
+        <td>data_deleted</td>
+        <td>TinyInt (0|1)</td>
+        <td>Whether data for this job was deleted from the server. If so, this job cannot be restarted and must be created.</td>
+    </tr>
+    <tr>
+        <td class="optional">destination</td>
+        <td>Phone Number</td>
+        <td>10 digit phone number to send the fax to. May be null.</td>
+    </tr>
+    <tr>
+        <td class="optional">end_date</td>
+        <td>DateTime</td>
+        <td>When the job completed sending successfully. May be null.</td>
+    </tr>
+    <tr>
+        <td>fail_code</td>
+        <td>Integer</td>
+        <td>The <a href="/api/failfax">fax failure code</a> of any error that prevented a fax from sending. 0 if no error has occurred.</td>
+    </tr>
+    <tr>
+        <td>fail_date</td>
+        <td>DateTime</td>
+        <td>When the job failed. May be null.</td>
+    </tr>
+    <tr>
+        <td>failed</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether the job is failed.</td>
+    </tr>
+    <tr>
+        <td>filename</td>
+        <td>String</td>
+        <td>The original filename uploaded with the job. If a <code>body</code> field (ie. text) was uploaded instead of a file, the <code>filename</code> property is "(text)".</td>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>Integer</td>
+        <td>A unique ID for the text. Not useful for much of anything.</td>
+    </tr>
+    <tr>
+        <td>ip_address</td>
+        <td>String</td>
+        <td>The IP address of whoever created the job.</td>
+    </tr>
+    <tr>
+        <td class="optional">mod_date</td>
+        <td>DateTime</td>
+        <td>When the job was last modified, including by any internal processing.</td>
+    </tr>
+    <tr>
+        <td class="optional">num_pages</td>
+        <td>Integer</td>
+        <td>
+            The number of pages. This property may not be
+            present if the job's <code>status</code> is "new" or "uploading". It
+            is computed after the job is initially created.
+        </td>
+    </tr>
+    <tr>
+        <td>send_authorized</td>
+        <td>TinyInt (0|1)</td>
+        <td>Default 0. Whether the user has authorized sending of this fax.</td>
+    </tr>
+    <tr>
+        <td class="optional">start_date</td>
+        <td>DateTime</td>
+        <td>When the job started sending. May be null.</td>
+    </tr>
+    <tr>
+        <td>status</td>
+        <td>String</td>
+        <td>
+            The current processing status of the fax. May be:
+            <ul>
+                <li>
+                    <strong>new</strong> - the fax was just created. The
+                    <code>cost</code>, <code>cover_cost</code>, <code>total_cost</code>,
+                    and <code>num_pages</code> properties are not yet computed.
+                </li>
+                <li>
+                    <strong>uploading</strong> - the fax is uploading to our servers. The
+                    <code>cost</code>, <code>cover_cost</code>, <code>total_cost</code>,
+                    and <code>num_pages</code> properties are not yet computed.
+                </li>
+                <li>
+                    <strong>processing</strong> - the fax is going through the initial
+                    processing and is not yet ready to send.
+                </li>
+                <li>
+                    <strong>ready</strong> - initial processing is complete and the
+                    fax is ready to send. Update the fax with <code>send_authorized=1</code>
+                    to start sending.
+                </li>
+                <li>
+                    <strong>queued</strong> - the fax has been authorized for sending
+                    and is in the queue for delivery.
+                </li>
+                <li>
+                    <strong>started</strong> - the fax is in the process of sending.
+                </li>
+                <li>
+                    <strong>sent</strong> - the fax was sent successfully.
+                </li>
+                <li>
+                    <strong>failed</strong> - the fax failed to send.
+                </li>
+            </ul>
+        </td>
+    </tr>
+    <tr>
+        <td class="optional">total_cost</td>
+        <td>Float</td>
+        <td>
+            The total cost for the job, including the cost of the cover sheet, if
+            selected. This property may not be
+            present if the job's <code>status</code> is "new" or "uploading". It
+            is computed after the job is initially created.
+        </td>
+    </tr>
+</table>
+<hr id="pagination">
+<h2>Pagination Object</h2>
+<p class="description">
+    <strong>Contains an array of objects and pagination properties for a list query.</strong>
+    The name of the property containing the objects matching the query  varies depending
+    on the API endpoint that was called. (For example <code>/jobs/list</code> returns
+    an array of matching <a href="/api/job">Job Objects</a> in the <code>jobs</code>
+    property of a Pagination Object response.)
+</p>
+<h3>Pagination Object Properties</h3>
+<table class="api">
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td><strong>(varies)</strong></td>
+        <td>Array</td>
+        <td>An array of result objects for the relevent endpoint.</td>
+    </tr>
+    <tr>
+        <td>has_next</td>
+        <td>Boolean</td>
+        <td>Whether another page of results exists.</td>
+    </tr>
+    <tr>
+        <td>has_prev</td>
+        <td>Boolean</td>
+        <td>Whether a previous page of results exists.</td>
+    </tr>
+    <tr>
+        <td>page</td>
+        <td>Integer</td>
+        <td>Which page of results is shown, starting at 1.</td>
+    </tr>
+    <tr>
+        <td>pages</td>
+        <td>Integer</td>
+        <td>The number of pages for this query.</td>
+    </tr>
+    <tr>
+        <td>per_page</td>
+        <td>Integer</td>
+        <td>The number of results to show per page.</td>
+    </tr>
+    <tr>
+        <td>total</td>
+        <td>Integer</td>
+        <td>The total number of matching results.</td>
+    </tr>
+</table>
+
+<hr id="error">
+<h2>Error Object</h2>
+<p class="description">
+    <strong>Contains information about an API error.</strong> If an API error
+    occurs, you'll get this instead of your expected response.
+</p>
+<table class="api">
+    <tr>
+        <th>Property</th>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>code</td>
+        <td>Integer</td>
+        <td>The error code. Refer to <a href="/api/failapi">the API Error Codes</a> for information about a specific error.</td>
+    </tr>
+    <tr>
+        <td>error</td>
+        <td>Boolean</td>
+        <td>Always true.</td>
+    </tr>
+    <tr>
+        <td>msg</td>
+        <td>String</td>
+        <td>A pretty description of the error.</td>
+    </tr>
+    <tr>
+        <td>ref</td>
+        <td>String</td>
+        <td>An ugly description of the error.</td>
+    </tr>
+    <tr>
+        <td class="optional">field</td>
+        <td>String</td>
+        <td>The model field the error relates to. Can be useful for client-side error handling.</td>
+    </tr>
+</table>
+<p class="description">
+    <strong>Example Error Object.</strong>
+</p>
+<pre class="code">
+{
+  "code": 4000, 
+  "error": true, 
+  "msg": "Unauthorized api_key", 
+  "ref": "API_UNAUTHORIZED"
+}
+</pre>
+<br id="fail"/><br/>
+<h4><a id="failapi"></a>Error Codes</h4>
+<h2>API Error Codes</h2>
+<table class="api">
+    <tr>
+        <th>Code</th>
+        <th>Ref</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>4000</td>
+        <td>API_UNAUTHORIZED</td>
+        <td>Unauthorized. Double check your api_key.</td>
+    </tr>
+    <tr>
+        <td>5000</td>
+        <td>JOBS_NO_ATTACHMENT</td>
+        <td>/jobs/create was called without a file or text body attachment.</td>
+    </tr>
+    <tr>
+        <td>5001</td>
+        <td>JOBS_BAD_DESTINATION</td>
+        <td>An invalid destination phone number was passed for this job.</td>
+    </tr>
+    <tr>
+        <td>5002</td>
+        <td>JOBS_BAD_COVER</td>
+        <td>An invalid value passed for cover.</td>
+    </tr>
+    <tr>
+        <td>5003</td>
+        <td>JOBS_BAD_FILENAME</td>
+        <td>The specified filename was invalid.</td>
+    </tr>
+    <tr>
+        <td>5004</td>
+        <td>JOBS_BAD_SEND_AUTHORIZED</td>
+        <td>Invalid value passed for send_authorized.</td>
+    </tr>
+    <tr>
+        <td>5005</td>
+        <td>JOBS_BAD_COVER_NAME</td>
+        <td>Invalid cover sheet name field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5006</td>
+        <td>JOBS_BAD_COVER_ADDRESS</td>
+        <td>Invalid cover sheet address field (Max 128 characters).</td>
+    </tr>
+    <tr>
+        <td>5007</td>
+        <td>JOBS_BAD_COVER_CITY</td>
+        <td>Invalid cover sheet city field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5008</td>
+        <td>JOBS_BAD_COVER_STATE</td>
+        <td>Invalid cover sheet state field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5009</td>
+        <td>JOBS_BAD_COVER_ZIP</td>
+        <td>Invalid cover sheet zip field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5010</td>
+        <td>JOBS_BAD_COVER_COUNTRY</td>
+        <td>Invalid cover sheet country field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5011</td>
+        <td>JOBS_BAD_COVER_PHONE</td>
+        <td>Invalid cover sheet phone number field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5012</td>
+        <td>JOBS_BAD_COVER_EMAIL</td>
+        <td>Invalid cover sheet email field (Max 128 characters).</td>
+    </tr>
+    <tr>
+        <td>5013</td>
+        <td>JOBS_BAD_COVER_COMPANY</td>
+        <td>Invalid cover sheet company field (Max 128 characters).</td>
+    </tr>
+    <tr>
+        <td>5014</td>
+        <td>JOBS_BAD_COVER_TO_NAME</td>
+        <td>Invalid cover sheet to name field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5015</td>
+        <td>JOBS_BAD_COVER_CC</td>
+        <td>Invalid cover sheet cc field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5016</td>
+        <td>JOBS_BAD_COVER_SUBJECT</td>
+        <td>Invalid cover sheet subject field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5017</td>
+        <td>JOBS_BAD_COVER_STATUS</td>
+        <td>Invalid cover sheet status field (Max 64 characters).</td>
+    </tr>
+    <tr>
+        <td>5018</td>
+        <td>JOBS_BAD_CALLBACK_URL</td>
+        <td>Invalid callback_url field (Max 255 characters).</td>
+    </tr>
+    <tr>
+        <td>5019</td>
+        <td>JOBS_MISSING_DESTINATION</td>
+        <td>Could not start the job because no destination was passed.</td>
+    </tr>
+    <tr>
+        <td>5020</td>
+        <td>JOBS_NOT_READY</td>
+        <td>This job has begun processing, so you can't change it anymore.</td>
+    </tr>
+    <tr>
+        <td>5021</td>
+        <td>JOBS_BAD_PAGINATION_VALUE</td>
+        <td>You sent an unacceptable page parameter.</td>
+    </tr>
+    <tr>
+        <td>5022</td>
+        <td>JOBS_NOT_RESTARTABLE</td>
+        <td>The specified job is not failed and cannot be restarted.</td>
+    </tr>
+    <tr>
+        <td>5023</td>
+        <td>JOBS_DATA_DELETED</td>
+        <td>The data for this job has been deleted from the server. Please recreate.<a id="failfax"></a></td>
+    </tr>
+    <tr>
+        <td>5024</td>
+        <td>JOBS_CANNOT_DELETE_NOW</td>
+        <td>The job is being processed and cannot be deleted now.</td>
+    </tr>
+</table>
+<h2>Fax Failure Codes</h2>
+<p class="description">
+    <strong>Note:</strong> This is not an exhaustive list of all possible fax
+    <code>fail_code</code> values. Any code not listed here should be considered an
+    "internal error" and opaque (not relevant) to your client app. Please 
+    <a href="#" class="support">contact support</a> if
+    an unlisted <code>fail_code</code> persists across multiple retries.
+</p>
+<table class="api">
+    <tr>
+        <th>Code</th>
+        <th>Ref</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td>504</td>
+        <td>JOBS_IMG_CONVERT_FAIL</td>
+        <td>Could not process the attached file. Was it a valid image?</td>
+    </tr>
+    <tr>
+        <td>513</td>
+        <td>JOBS_INSUFFICIENT_CREDIT</td>
+        <td>No funds were available in the account to process this job.</td>
+    </tr>
+    <tr>
+        <td>515</td>
+        <td>JOBS_TRANSMIT_FAIL</td>
+        <td>Could not transmit the fax. Please contact support if the problem persists.</td>
+    </tr>
+    <tr>
+        <td>516</td>
+        <td>JOBS_TRANSMIT_NO_ANSWER</td>
+        <td>The number you dialed didn't answer or was not a fax machine. Please try again.</td>
+    </tr>
+    <tr>
+        <td>517</td>
+        <td>JOBS_TRANSMIT_BUSY</td>
+        <td>The number you dialed was busy. Please try again later.</td>
+    </tr>
+    <tr>
+        <td>518</td>
+        <td>JOBS_UNSUPPORTED_FORMAT</td>
+        <td>The number you dialed was busy. Please try again later.</td>
+    </tr>
+    <tr>
+        <td>520</td>
+        <td>JOBS_CARD_DECLINED</td>
+        <td>The account's stored credit information didn't work.</td>
+    </tr>
+    <tr>
+        <td>521</td>
+        <td>JOBS_NO_ATTACHMENT_FOUND</td>
+        <td>There was no body and no filename attached to this job.</td>
+    </tr>
+    <tr>
+        <td>523</td>
+        <td>JOBS_FAIL_DATA_DELETED</td>
+        <td>There was no body and no filename attached to this job.</td>
+    </tr>
+</table>
