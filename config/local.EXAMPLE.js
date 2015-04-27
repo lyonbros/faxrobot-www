@@ -1,3 +1,4 @@
+const PROJECT_NAME = 'Fax Robot';
 const EMAIL_CONTACT = 'human@faxrobot.io';
 const EMAIL_SUPPORT = 'support@faxrobot.io';
 const API_URL = 'http://localhost:9001';

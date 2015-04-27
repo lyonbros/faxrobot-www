@@ -1,7 +1,7 @@
 var faxrobot = {
 
     // base window title
-    base_window_title: 'Fax Robot',
+    base_window_title: PROJECT_NAME,
 
     // holds the DOM object that turtl does all of its operations within
     main_container_selector: '#main',

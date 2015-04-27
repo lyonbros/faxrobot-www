@@ -216,7 +216,7 @@ var AccountsManageController = Composer.Controller.extend({
         });
 
         this.stripe.open({
-            name: 'Buy Fax Robot Credit ($'+amount+')',
+            name: 'Buy ' + PROJECT_NAME + ' Credit ($'+amount+')',
             description: 'For whenever you need to send a fax.',
             amount: amount * 100
         });

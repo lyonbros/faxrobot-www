@@ -32,7 +32,7 @@
     </div>
     
     <script id="header_header" type="text/template">
-        <a href="/" class="logo">Fax Robot.</a>
+        <a href="/" class="logo"><%-PROJECT_NAME%>.</a>
         <ul class="nav">
             <li><a href="/">Send a Fax</a></li>
             <% if (api_key) { %><li><a href="/jobs">My Faxes</a></li><% } %>
@@ -62,7 +62,7 @@
     </script>
     <script id="jobs_create" type="text/template">
         <div class="container">
-            <h1>Fax Robot.</h1>
+            <h1><%-PROJECT_NAME%>.</h1>
             <h2>Send a fax. Fast and secure.</h2>
 
             <form class="fax_form" method="post" enctype="multipart/form-data">
@@ -105,7 +105,7 @@
     </script>
     <script id="job_info" type="text/template">
         <div class="container">
-            <h1>Fax Robot.</h1>
+            <h1><%-PROJECT_NAME%>.</h1>
             <h2>- Job Details -</h2>
 
             <% if (!logged_in) { %>
@@ -170,7 +170,7 @@
                     </p>
                 </div>
             <% } else { %>
-                <h1>Fax Robot.</h1>
+                <h1><%-PROJECT_NAME%>.</h1>
             <% } %>
             <h2>- Your faxes -</h2>
             <% if (!logged_in) { %>
@@ -250,7 +250,7 @@
     </script>
     <script id="accounts_transactions" type="text/template">
         <div class="container">
-            <h1>Fax Robot.</h1>
+            <h1><%-PROJECT_NAME%>.</h1>
             <h2>- Your transactions -</h2>
 
             <% if (!logged_in) { %>
@@ -553,7 +553,7 @@
     </script>
     <script id="accounts_manage" type="text/template">
         <div class="container">
-            <h1>Fax Robot.</h1>
+            <h1><%-PROJECT_NAME%>.</h1>
             <h2>- Your Account -</h2>
 
             <% if (!logged_in) { %>
