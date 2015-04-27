@@ -1,6 +1,6 @@
 Fax Robot WWW
 =============
-#### The [Fax Robot website][1]! Based on the [composer.js][5] JavaScript framework!
+#### The [Fax Robot website][1], based on the [composer.js][5] JavaScript framework!
 
 **You're probably more interested in [faxrobot][2], the Fax Robot API project.**
 
