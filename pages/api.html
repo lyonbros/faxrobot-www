@@ -32,7 +32,7 @@
 <h1>API</h1>
 <p>
     Are you a developer? The Fax Robot API lets you send faxes from your app.
-    Make all API calls to <code>https://api.faxrobot.io</code><span id="endpoints">.</span>
+    Make all API calls to <code>https://api.faxrobot.com</code><span id="endpoints">.</span>
 </p>
 <h4><a id="create"></a>Endpoints</h4>
 <h2>POST: <code>/jobs/create</code></h2>
@@ -169,7 +169,7 @@ hasn't been computed yet.)
 </p>
 
 <pre class="code">
-curl https://api.faxrobot.io/jobs/create \
+curl https://api.faxrobot.com/jobs/create \
     -F 'destination=6509061234' \
     -F 'file=@/path/to/filename.docx' \
     -F 'send_authorized=1 \
@@ -342,7 +342,7 @@ A <a href="/api/job">Job Object</a>. See the section on
     <strong>Get info for a fax:</strong>
 </p>
 <pre class="code">
-curl https://api.faxrobot.io/jobs/get/[LONG_HEX_STRING]</pre>
+curl https://api.faxrobot.com/jobs/get/[LONG_HEX_STRING]</pre>
 <p class="description">
     <strong>Example response.</strong>
 </p>
@@ -464,7 +464,7 @@ A <a href="/api/pagination">Pagination Object</a> with an array of
     <strong>Example request.</strong>
 </p>
 <pre class="code">
-curl https://api.faxrobot.io/jobs/list?page=1&filter=all&api_key=[LONG_HEX_STRING]</pre>
+curl https://api.faxrobot.com/jobs/list?page=1&filter=all&api_key=[LONG_HEX_STRING]</pre>
 <p class="description">
     <strong>Example response.</strong>
 </p>
