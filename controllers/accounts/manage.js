@@ -203,6 +203,11 @@ var AccountsManageController = Composer.Controller.extend({
                         if (xhr.status == 200) {
                             this.model.set(response);
                             util.notify('Thanks for your purchase!');
+
+                            if (typeof hooks != 'undefined')
+                                if (typeof hooks.payment == 'function')
+                                    hooks.payment(amount, 'oneoff');
+                                
                         } else if (response && response.code == 6005) 
                             faxrobot.error.show(103);
                         else

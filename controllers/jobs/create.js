@@ -463,6 +463,10 @@ var JobsCreateController = Composer.Controller.extend({
                     this.confirmed_password = null;
                     faxrobot.account.login(response);
 
+                    if (typeof hooks != 'undefined')
+                        if (typeof hooks.payment == 'function')
+                            hooks.payment(PAYMENT_DEFAULT_AMOUNT, 'bootstrap');
+
                     return this.send_fax();
                 } else if (response && response.code == 6004) { // login needed
                     this.track_subcontroller('confirm_password',
