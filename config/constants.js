@@ -1,13 +1,12 @@
-const STATUS_POLL_DELAY = 2000;
-const SUPPORTED_FILETYPES = ['doc', 'docx', 'pdf', 'txt', 'png', 'jpg'];
-const PAYMENT_DEFAULT_AMOUNT = 2;
+var STATUS_POLL_DELAY = 2000;
+var SUPPORTED_FILETYPES = ['doc', 'docx', 'pdf', 'txt', 'png', 'jpg'];
+var PAYMENT_DEFAULT_AMOUNT = PAYMENT_DEFAULT_AMOUNT || 2;
 
-const ERR_ACCESS_DENIED = 401;
-const ERR_NO_FILE_ATTACHED = 101;
-const ERR_BAD_DESTINATION = 102;
+var ERR_ACCESS_DENIED = 401;
+var ERR_NO_FILE_ATTACHED = 101;
+var ERR_BAD_DESTINATION = 102;
 
-
-const ERRORS = [
+var ERRORS = [
     {
         code: 0,
         title: 'An error has occurred!',
