@@ -1,5 +1,5 @@
 const STATUS_POLL_DELAY = 2000;
-const SUPPORTED_FILETYPES = ['doc', 'docx', 'pdf', 'txt'];
+const SUPPORTED_FILETYPES = ['doc', 'docx', 'pdf', 'txt', 'png', 'jpg'];
 const PAYMENT_DEFAULT_AMOUNT = 2;
 
 const ERR_ACCESS_DENIED = 401;
