@@ -47,6 +47,7 @@ var JobsCreateController = Composer.Controller.extend({
             if (typeof StripeCheckout != "undefined") {
                 this.stripe = StripeCheckout.configure({
                     key: STRIPE_PUBLIC_KEY,
+                    bitcoin: true,
                     token: function(token) {
                         this.stripe_token = token;
                         this.process_stripe_token();
