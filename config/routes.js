@@ -1,8 +1,11 @@
 var routes = {
     '/': ['jobs', 'create'],
     '/jobs': ['jobs', 'list'],
-    '/jobs/([a-z]+)/([0-9]+)': ['jobs', 'list'],
+    '/jobs/received': ['incoming', 'list'],
+    '/jobs/sent/([a-z]+)/([0-9]+)': ['jobs', 'list'],
+    '/jobs/received/([0-9]+)': ['incoming', 'list'],
     '/job/([a-z0-9]+)': ['jobs', 'view'],
+    '/receive': ['incoming', 'provision'],
     '/accounts/login': ['accounts', 'login'],
     '/accounts/logout': ['accounts', 'logout'],
     '/accounts/register': ['accounts', 'register'],

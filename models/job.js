@@ -3,6 +3,7 @@ var Job  =   Composer.Model.extend({
         status: 'new',
         cost: 0,
         cover_cost: 0,
+        international: 0,
         attempts: 0,
         num_pages: 0,
         send_authorized: false,

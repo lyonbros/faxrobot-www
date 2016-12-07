@@ -1,6 +1,6 @@
 var STATUS_POLL_DELAY = 2000;
 var SUPPORTED_FILETYPES = ['doc', 'docx', 'pdf', 'txt', 'png', 'jpg'];
-var PAYMENT_DEFAULT_AMOUNT = PAYMENT_DEFAULT_AMOUNT || 2;
+var PAYMENT_DEFAULT_AMOUNT = PAYMENT_DEFAULT_AMOUNT || 3;
 
 var ERR_ACCESS_DENIED = 401;
 var ERR_NO_FILE_ATTACHED = 101;
@@ -24,7 +24,7 @@ var ERRORS = [
     },
     {
         code: 102,
-        title: 'Please enter a U.S. or Canadian fax number.',
+        title: 'Please enter a valid fax number.',
         detail: 'Don\'t forget to include an area code :)'
     },
     {
@@ -67,5 +67,35 @@ var ERRORS = [
         code: 520,
         title: 'Payment failed.',
         detail: 'Your account ran out of funds and we were unable to authorized the stored credit card info. Please add credit and try again.'
-    }
+    },
+    {
+        code: 527,
+        title: 'Invalid phone number.',
+        detail: 'The specified fax number was invalid or not formatted correctly.'
+    },
+    {
+        code: 600,
+        title: 'Unable to provision your number.',
+        detail: 'An uncommon error occurred with our telecommunications provider. Sorry! Please contact {SUPPORT_MAILTO}.'
+    },
+    {
+        code: 601,
+        title: 'Please try a different area code.',
+        detail: 'The area code you chose is invalid or has no numbers available at this time.'
+    },
+    {
+        code: 602,
+        title: 'You already set up your receiving fax number!',
+        detail: 'Check it out here on your Account Settings page.'
+    },
+    {
+        code: 603,
+        title: 'Well that didn\'t work...',
+        detail: 'You tried to delete your incoming fax number, but it looks like it was already removed from the account.'
+    },
+    {
+        code: 604,
+        title: 'Unable to disable your fax number :(',
+        detail: 'Something went wrong with our telecommunications provider. Sorry! Please contact {SUPPORT_MAILTO}.'
+    },
 ]

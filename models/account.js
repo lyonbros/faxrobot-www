@@ -15,6 +15,7 @@ var Account  =   Composer.Model.extend({
         'email_success': 1,
         'email_fail': 1,
         'email_list': 1,
+        'incoming_number': null
     },
 
     init: function(options) {},
@@ -47,6 +48,40 @@ var Account  =   Composer.Model.extend({
             return this.get('email');
         else
             return 'Guest';
-    }
+    },
+
+    save_fields: function(fields, options) {
+        options || (options = {});
+        options.success || (options.success = function() {});
+        options.error || (options.error = function() {});
+
+        console.log('saving: ', fields);
+
+        var data = new FormData();
+        data.append('api_key', faxrobot.account.get('api_key'));
+
+        for (var i=0; i < fields.length; i++)
+            data.append(fields[i], this.get(fields[i]));
+
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                var response = JSON.parse(xhr.response);
+
+                if (xhr.status == 200) {
+                    this.set(response);
+                    options.success(response);
+                } else if (response && response.field) {
+                    options.error(response);                    
+                } else if (response && response.code == 6006) 
+                    faxrobot.error.show(104);
+                else
+                    faxrobot.error.api(xhr.status, xhr.response);
+            }
+        }.bind(this);
+        xhr.open("post", API_URL + '/accounts/update', true);
+        xhr.send(data);
+
+    },
 
 });

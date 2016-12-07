@@ -23,6 +23,16 @@ var JobsListTableController = Composer.Controller.extend({
         this.with_bind(faxrobot.account, 'change', this.release.bind(this));
         this.render();
         this.load_jobs();
+
+        this.reload_interval = setInterval(function() {
+            this.update(this.filter, this.page, true);
+        }.bind(this), 30000);
+
+        this.bind('release', function() {
+            if (this.reload_interval)
+                clearInterval(this.reload_interval);
+        }.bind(this))
+
         return this;
     },
 
@@ -88,11 +98,13 @@ var JobsListTableController = Composer.Controller.extend({
         faxrobot.route('/job/'+id);
     },
 
-    update: function(filter, page) {
+    update: function(filter, page, silent) {
         this.filter = filter;
         this.page = page;
-        this.collection = null;
-        this.render();
+        if (!silent) {
+            this.collection = null;
+            this.render();
+        }
         this.load_jobs();
     }
 

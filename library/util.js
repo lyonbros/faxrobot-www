@@ -34,6 +34,9 @@ var util = {
     format_phone: function(n) {
         if (!n)
             return '';
+        if (n.length == 11 && n.charAt(0) == "1")
+            n = n.substr(1);
+
         return n.substr(0,3)+'-'+n.substr(3,3)+'-'+n.substr(6)
     },
 
@@ -41,7 +44,7 @@ var util = {
         if (!d)
             return '-';
         d = new Date(d);
-        return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear()+'&nbsp;'+(d.getHours() > 12 ? d.getHours() - 12 : d.getHours())+':'+(d.getMinutes() >= 10 ? d.getMinutes() : '0'+d.getMinutes())+(d.getHours() > 12 ? 'pm' : 'am')
+        return (d.getMonth()+1)+'/'+d.getDate()+'/'+(d.getFullYear()-2000)+'&nbsp;'+(d.getHours() > 12 ? d.getHours() - 12 : d.getHours())+':'+(d.getMinutes() >= 10 ? d.getMinutes() : '0'+d.getMinutes())+(d.getHours() > 12 ? 'pm' : 'am')
     },
 
     remove_class: function(el, class_name) {

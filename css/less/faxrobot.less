@@ -312,6 +312,16 @@ h2 {
     font-size: 1.6em;
     text-align: center;
     font-weight: bold;
+    margin-bottom: .25em;
+
+    em {
+        text-decoration: underline;
+    }
+}
+p.small {
+    text-align: center;
+    font-family: "courier_prime";
+    font-size: 1em;
     margin-bottom: 1em;
 }
 a {
@@ -327,9 +337,36 @@ form.fax_form {
     padding-top: 0px;
     margin-top: 60px;
 
+    button {
+        color: white;
+        background: #7a0;
+        border: 2px solid #480;
+        font-family: "Roboto";
+        padding: 5px 15px;
+        width: 250px;
+        margin-top: 0em;
+        margin-bottom: 0.5em;
+        box-shadow: 0px 5px 10px rgba(0, 0, 0, .3);
+
+        &:hover {
+            background: #480;
+            transform: translateY(2px);
+            box-shadow: 0px 0px 3px rgba(0, 0, 0, .5);
+        }
+
+        &.alt {
+            background: #b55;
+            border-color: #933;
+
+            &:hover {
+                background: #933;
+            }
+        }
+    }
+
     .row {
 
-        margin-top: 2em;
+        margin-top: 1.5em;
         font-family: "Special Elite", "Courier New";
         font-size: 1.6em;
         font-weight: normal;
@@ -419,6 +456,41 @@ form.fax_form {
             .disclosure {
                 margin-top: 2em;
                 line-height: 1.3em;
+            }
+        }
+    }
+    &.centered {
+        margin-top: 0px;
+        .row {
+            span {
+                float: none;
+                margin: 0px auto;
+                width: 400px;
+                text-align: center;
+
+                input[type=text], button {
+                    margin-left: auto;
+                    margin-right: auto;
+                    text-align: center;
+                }
+
+                button {
+                    margin-top: .5em;
+                    margin-bottom: 0;
+                }
+
+                a.login {
+                    margin-top: 15px;
+                    display: block;
+                    font-size: .6em;
+                    font-family: "courier_prime";
+                }
+
+                .disclosure {
+                    font-family: "courier_prime";
+                    font-size: .9em;
+                }
+
             }
         }
     }
@@ -679,7 +751,31 @@ table.api {
         }
     }
 }
+ul.cta {
+    list-style-type: none;
+    max-width: 80%;
+    width: 100%;
+    margin: 0px auto;
+    padding-top: 1.5em;
 
+    li {
+        img {
+            width: 30px;
+            height: 30px;
+            vertical-align: middle;
+            margin-bottom: 7px;
+        }
+        vertical-align: middle;
+        text-align: center;
+        font-size: 1.4em;
+        line-height: 1.5em;
+        margin-bottom: 1em;
+
+        strong {
+            font-weight: bold;
+        }
+    }
+}
 .content {
     padding: 0px 35px 70px 35px;
     font-family: "courier_prime";

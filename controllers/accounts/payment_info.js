@@ -8,6 +8,9 @@ var AccountsPaymentInfoController = BaseModalController.extend({
 
     model: null,
     closable: true,
+    show_incoming_onboarding: false,
+
+    default_button_text: 'Save Credit Card',
 
     elements: {
         '#card_number': 'card_number',
@@ -45,8 +48,10 @@ var AccountsPaymentInfoController = BaseModalController.extend({
     render: function()
     {
         var data = this.model.toJSON();
+        data.show_incoming_onboarding = this.show_incoming_onboarding;
         var html = faxrobot.render_template(this.template, data);
         this.html(html);
+        this.button.textContent = this.default_button_text;
         this.show();
 
         if (!document.getElementById('stripe_script')) {

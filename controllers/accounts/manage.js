@@ -33,6 +33,7 @@ var AccountsManageController = Composer.Controller.extend({
         'click a.edit_account': 'edit_account',
         'click a.change_password': 'change_password',
         'click a.api_key': 'view_api_key',
+        'click a.disable_incoming': 'disable_incoming',
         'change #auto_recharge': 'change_recharge',
         'change input.email_pref': 'change_email_pref',
         'submit form.edit_form': 'save_account'
@@ -94,43 +95,23 @@ var AccountsManageController = Composer.Controller.extend({
 
     save_fields: function(fields) {
 
-        console.log('saving: ', fields);
-
-        var data = new FormData();
-        data.append('api_key', faxrobot.account.get('api_key'));
-
-        for (var i=0; i < fields.length; i++) {
+        for (var i=0; i < fields.length; i++)
             if (typeof this[fields[i]] != "undefined")
                 util.remove_class(this[fields[i]].parentNode, 'error');
 
-            data.append(fields[i], this.model.get(fields[i]));
-        }
-
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                var response = JSON.parse(xhr.response);
-
-                if (xhr.status == 200) {
-                    this.model.set(response);
-                    util.notify('Account updated!');
-                } else if (response && response.field) {
-                    console.log('lol: ', typeof this[response.field]);
-                    if (typeof this[response.field] != "undefined") {
-                        this[response.field].parentNode.className += ' error';
-                        this[response.field].focus();
-                        this.error_info.textContent = response.msg;
-                    }
-
-                } else if (response && response.code == 6006) 
-                    faxrobot.error.show(104);
-                else
-                    faxrobot.error.api(xhr.status, xhr.response);
-            }
-        }.bind(this);
-        xhr.open("post", API_URL + '/accounts/update', true);
-        xhr.send(data);
-
+        this.model.save_fields(fields, {
+            success: function(response) {
+                util.notify('Account updated!');
+            }.bind(this),
+            error: function(response) {
+                console.log('lol: ', typeof this[response.field]);
+                if (typeof this[response.field] != "undefined") {
+                    this[response.field].parentNode.className += ' error';
+                    this[response.field].focus();
+                    this.error_info.textContent = response.msg;
+                }
+            }.bind(this)
+        });
     },
 
     remove_card: function(e) {
@@ -278,6 +259,38 @@ var AccountsManageController = Composer.Controller.extend({
 
         this.grab_form();
         this.save_fields(this.account_fields);
+    },
+
+    disable_incoming: function(e) {
+        if (e)
+            e.preventDefault();
+
+        if (!confirm('Are you sure you wish to disable your incoming fax number? This change will take effect immediately and you may not be able to get this number back.'))
+            return false;
+
+        var data = new FormData();
+        data.append('api_key', faxrobot.account.get('api_key'));
+
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4)
+            {
+                var response = JSON.parse(xhr.response);
+
+                if (xhr.status == 200) {
+                    this.model.set({incoming_number: null});
+                    util.notify('Your number was removed!');
+                } else if (response && response.code == 6023) 
+                    faxrobot.error.show(603);
+                else if (response && response.code == 6024) 
+                    faxrobot.error.show(604);
+                else
+                    faxrobot.error.api(xhr.status, xhr.response);
+            }
+        }.bind(this);
+        xhr.open("post", API_URL + '/incoming/deprovision', true);
+        xhr.send(data);
+
     },
 
     grab_form: function() {

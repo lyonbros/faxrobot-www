@@ -36,6 +36,11 @@ var ErrorModalController = BaseModalController.extend({
             SUPPORTED_FILETYPES.join(', ')
         );
 
+        data.detail = data.detail.replace(
+            '{SUPPORT_MAILTO}',
+            '<a href="mailto:'+EMAIL_SUPPORT+'">'+EMAIL_SUPPORT+'</a>'
+        );
+
         console.log('data: ', data);
 
         var html = faxrobot.render_template(this.template, data);

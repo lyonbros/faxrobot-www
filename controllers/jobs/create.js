@@ -12,7 +12,7 @@ var JobsCreateController = Composer.Controller.extend({
     confirmed_password: null,
     button_text_original: null,
 
-    default_cost_text: 'Just $0.06 per page!',
+    default_cost_text: '$0.10/page US & Canada!<br/>$0.20/page internationally',
 
     elements: {
         'input[type=file]': 'input_file',
@@ -61,7 +61,7 @@ var JobsCreateController = Composer.Controller.extend({
             }
         }.bind(this), 100);
         
-        document.body.style.backgroundColor = 'green';
+        document.body.style.backgroundColor = '#480';
 
         return this;
     },
@@ -123,14 +123,42 @@ var JobsCreateController = Composer.Controller.extend({
         destination = destination.replace(/[-\(\)\s]/g, '');
         console.log('destination: ', destination);
 
-        if (destination.length == 10) {
-            row.className = row.className.replace(/error/g, '');
-            this.model.set({destination: destination});
-            return true;
-        } else {
+        if (destination.length < 10 || isNaN(destination)) {
+            this.model.set({destination: null})
             row.className += ' error';
             return false;
         }
+        
+        row.className = row.className.replace(/error/g, '');
+        this.model.set({destination: destination});
+
+        if (this.model.get('access_key')) {
+            this.model.set({cost: null});
+            this.render_cost();
+
+            var d = new FormData();        
+            d.append('destination', this.model.get('destination'));        
+            var url = API_URL+'/jobs/update/'+this.model.get('access_key');
+
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4)
+                {
+                    var res = JSON.parse(xhr.response)
+                    this.model.set({
+                        cost: res.cost ? res.cost : null,
+                        cover_cost: res.cover_cost ? res.cover_cost : null,
+                        international: res.international ? res.international : null
+                    });
+                    this.render_cost();
+                }
+            }.bind(this);
+            xhr.open("post", url, true);
+            xhr.send(d);
+            }
+
+        return true;
+        
     },
 
     handle_file: function(e) {
@@ -183,8 +211,8 @@ var JobsCreateController = Composer.Controller.extend({
         xhr.send(data);
     },
 
-    eject_file: function() {
-        this.file_row.className += ' error';
+    eject_file: function(silent) {
+        if (!silent) this.file_row.className += ' error';
         this.render_cost();
         this.render_filename_area();
     },
@@ -228,15 +256,20 @@ var JobsCreateController = Composer.Controller.extend({
                 calculated_cost += this.model.get('cover_cost');
 
             var html = 'Just $'+calculated_cost.toFixed(2)+ ' ';
-            html += '(' + this.model.get('num_pages') + ' page';
+            if (this.model.get('international'))
+                html += '<em class="error">(international)</em>';
+            else {
+            
+                html += '(' + this.model.get('num_pages') + ' page';
 
-            if (this.model.get('num_pages') > 1)
-                html += 's';
+                if (this.model.get('num_pages') > 1)
+                    html += 's';
 
-            if (this.model.get('cover'))
-                html += ' + cover';
+                if (this.model.get('cover'))
+                    html += ' + cover';
 
-            html += ')';
+                html += ')';
+            }
         }
         
         this.cost_area.innerHTML = html;
@@ -251,10 +284,15 @@ var JobsCreateController = Composer.Controller.extend({
         var decoded = JSON.parse(response);
 
         var error_code = decoded && decoded.code ? decoded.code : 0;
+
+        console.log('decoded:', decoded);
+        console.log('error_code:', error_code);
         
         switch (error_code) {
             case 5001: // phone number was shitty
-                faxrobot.error.show(error_code);
+                faxrobot.error.show(102);
+                this.eject_file(true);
+                this.destination_row.className += ' error';
                 break;
             default:
                 faxrobot.error.api(status, response);
@@ -327,10 +365,11 @@ var JobsCreateController = Composer.Controller.extend({
         console.log('JOB IS READY: ', data);
 
         this.model.set({
-            status:     data.status,
-            cost:       data.cost,
-            cover_cost: data.cover_cost,
-            num_pages:  data.num_pages
+            status:         data.status,
+            cost:           data.cost,
+            cover_cost:     data.cover_cost,
+            num_pages:      data.num_pages,
+            international:  data.international
         });
         this.render_cost();
         this.trigger('ready');
