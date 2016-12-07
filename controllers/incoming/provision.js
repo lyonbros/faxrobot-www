@@ -88,7 +88,6 @@ var IncomingProvisionController = Composer.Controller.extend({
                     return this.auto_recharge_and_provision(['auto_recharge']);
                 return;
             }
-            this.plz_wait();
             return this.provision_number();
         }
         this.track_subcontroller('payment_info', function() {
