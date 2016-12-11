@@ -466,7 +466,7 @@ var JobsCreateController = Composer.Controller.extend({
             modal.close();
 
         this.stripe.open({
-            name: 'Buy ' + PROJECT_NAME + ' Credit ($2)',
+            name: 'Buy ' + PROJECT_NAME + ' Credit ($3)',
             description: 'For whenever you need to send a fax.',
             amount: PAYMENT_DEFAULT_AMOUNT * 100
         });
