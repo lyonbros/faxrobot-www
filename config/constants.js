@@ -98,4 +98,9 @@ var ERRORS = [
         title: 'Unable to disable your fax number :(',
         detail: 'Something went wrong with our telecommunications provider. Sorry! Please contact {SUPPORT_MAILTO}.'
     },
+    {
+        code: 5025,
+        title: 'Rate limit exceeded :(',
+        detail: 'To protect our service against automated abuse, we limit the rate at which you can send faxes. Please try again in a few minutes or contact {SUPPORT_MAILTO} if you need to send more frequently.',
+    }
 ]

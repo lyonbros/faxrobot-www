@@ -120,7 +120,7 @@ var JobsCreateController = Composer.Controller.extend({
         var destination = this.input_destination.value;
         var row = this.destination_row
 
-        destination = destination.replace(/[-\(\)\s]/g, '');
+        destination = destination.replace(/[-\(\)\s\+]/g, '');
         console.log('destination: ', destination);
 
         if (destination.length < 10 || isNaN(destination)) {
